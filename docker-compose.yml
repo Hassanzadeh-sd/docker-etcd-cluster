@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  etcd-00:
+    image: bitnami/etcd:3.5.4
+    container_name: etcd-00
+    hostname: etcd-00
+    restart: always
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes #  Allow login without password 
+      - ETCD_NAME=etcd-00 # etcd The name of 
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd-00:2379 #  List the clients for this member URL That notifies other members of the cluster
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379 #  Used to listen for client traffic URL List
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd-00:2380 # List the partners of this member  URL  So that it can be notified to other members of the cluster 
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380 #  Used to monitor partner communication URL List 
+      - ETCD_INITIAL_CLUSTER=etcd-00=http://etcd-00:2380,etcd-01=http://etcd-01:2380 #  Initialize cluster configuration for startup 
+      - ETCD_INITIAL_CLUSTER_STATE=new #  Initialize cluster state 
+      - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-1
+    volumes:
+      - etcd-00vol:/bitnami/etcd
+    networks:
+      - etcd
+    ports:
+      - 2278:2379
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "5"
+
+  etcd-01:
+    image: bitnami/etcd:3.5.4
+    container_name: etcd-01
+    hostname: etcd-01
+    restart: always
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_NAME=etcd-01
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd-01:2379
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd-01:2380
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_CLUSTER=etcd-00=http://etcd-00:2380,etcd-01=http://etcd-01:2380
+      - ETCD_INITIAL_CLUSTER_STATE=new
+      - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-1
+    volumes:
+      - etcd-01vol:/bitnami/etcd
+    networks:
+      - etcd
+    ports:
+      - 2279:2379
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "5"
+
+volumes:
+  etcd-00vol:
+    driver: local
+  etcd-01vol:
+    driver: local
+
+networks:
+  etcd:
+    driver: bridge
